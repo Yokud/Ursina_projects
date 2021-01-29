@@ -3,7 +3,7 @@ import math
 
 
 def magnitude(vec):
-    return (vec[0]**2 + vec[1]**2)**0.5
+    return math.hypot(vec[0], vec[1])
 
 
 def limit(vec, lim):
