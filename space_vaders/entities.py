@@ -9,25 +9,28 @@ class Spaceship(Sprite):
         self.shot_speed = shot_speed
         self.move_speed = move_speed
         self.position = Vec2(0, -2 * window.aspect_ratio)
-        self.text_score = Text(text="Score: " + str(self.score), background=True,
-                               x=-0.85, y=-0.45, z=-1)
-        self.floor = Sprite(color=color.green, scale_x=window.fullscreen_size[0] / 100, scale_y=0.2,
-                            position=Vec2(0, -2.3 * window.aspect_ratio), collider='box', collision=True, visible=False)
-        
+        self.__text_score = Text(text="Score: " + str(self.score), background=True, x=-0.85, y=-0.45, z=-1)
+        self.__floor = Sprite(color=color.green, scale_x=window.fullscreen_size[0] / 100, scale_y=0.2,
+                              position=Vec2(0, -2.3 * window.aspect_ratio), collider='box', collision=True,
+                              visible=False)
+
     def update(self):
         self.x += held_keys['d'] * self.move_speed * time.dt if self.x < 6.75 else 0
         self.x -= held_keys['a'] * self.move_speed * time.dt if self.x > -6.75 else 0
 
-        player_hit_info = self.intersects()
-        floor_hit_info = self.floor.intersects()
+        self.__text_score.text = "Score: " + str(self.score)
 
-        if player_hit_info.hit and type(player_hit_info.entity) is Enemy or\
-                floor_hit_info.hit and type(floor_hit_info.entity) is Enemy:
+        __player_hit_info = self.intersects()
+        __floor_hit_info = self.__floor.intersects()
+
+        if __player_hit_info.hit and type(__player_hit_info.entity) is Enemy or \
+                __floor_hit_info.hit and type(__floor_hit_info.entity) is Enemy:
             destroy(self)
+            application.pause()
             scene.clear()
             menu_bg = Sprite(parent=scene, z=10, scale=(16, 9), texture='data/void.jpg')
             menu_bg.scale *= 2
-            self.menu()
+            self.death_menu()
 
     def input(self, key):
         if key == 'space':
@@ -36,21 +39,22 @@ class Spaceship(Sprite):
     def shot(self):
         Bullet(self, position=Vec2(self.x, self.y + 0.25))
 
-    def menu(self):
+    def death_menu(self):
         WindowPanel(
             title='You died',
             content=(
                 Text("Score: " + str(self.score)),
                 Button(text='Try again', color=color.azure, on_click=HotReloader(path='main.py').reload_code),
                 Button(text='Exit', color=color.red, on_click=application.quit)
-            ), lock_x=True, lock_y=True, lock_z=True
+            ),
+            lock_x=True, lock_y=True, lock_z=True
         )
 
 
 class Bullet(Sprite):
     def __init__(self, player, move_speed=5, position=Vec2(0, 0)):
-        super().__init__(color=color.orange, scale_x=.03, scale_y=.25,
-                         position=position, collider='box', collision=True)
+        super().__init__(color=color.orange, scale_x=.03, scale_y=.25, position=position,
+                         collider='box', collision=True)
         self.move_speed = move_speed
         self.player = player
 
@@ -65,14 +69,13 @@ class Bullet(Sprite):
             destroy(hit_info.entity)
             destroy(self, 0.01)
             self.player.score += 10
-            self.player.text_score.text = "Score: " + str(self.player.score)
-        
+
 
 class Enemy(Sprite):
     def __init__(self, enemy_texture=None, move_speed=3,
                  start_position=Vec2(0, 2.5 * window.aspect_ratio)):
-        super().__init__(texture=enemy_texture, scale_x=1, scale_y=1,
-                         position=start_position, collider='box', collision=True)
+        super().__init__(texture=enemy_texture, scale_x=1, scale_y=1, position=start_position, collider='box',
+                         collision=True)
         self.move_speed = move_speed
 
     def update(self):
