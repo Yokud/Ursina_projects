@@ -1,5 +1,5 @@
 from ursina import *
-
+import random as rnd
 
 class Spaceship(Sprite):
     def __init__(self, texture=None, shot_speed=0.5, move_speed=1, scale=.125):
@@ -26,7 +26,6 @@ class Spaceship(Sprite):
         if __player_hit_info.hit and type(__player_hit_info.entity) is Enemy or \
                 __floor_hit_info.hit and type(__floor_hit_info.entity) is Enemy:
             destroy(self)
-            application.pause()
             scene.clear()
             menu_bg = Sprite(parent=scene, z=10, scale=(16, 9), texture='data/void.jpg')
             menu_bg.scale *= 2
@@ -35,6 +34,9 @@ class Spaceship(Sprite):
     def input(self, key):
         if key == 'space':
             self.shot()
+        elif key == 's':
+            Enemy(move_speed=1,
+                  start_position=Vec2(rnd.randrange(-5, 5), 2.4 * window.aspect_ratio))
 
     def shot(self):
         Bullet(self, position=Vec2(self.x, self.y + 0.25))
@@ -80,3 +82,14 @@ class Enemy(Sprite):
 
     def update(self):
         self.y -= self.move_speed * time.dt
+
+
+class Spawner(Sprite):
+    def __init__(self, entity_textures=list(), start_delay=1.0):
+        super().__init__(visible=False)
+        self.entity_textures = entity_textures
+        self.delay = start_delay
+
+    def update(self):
+        invoke(Enemy, enemy_texture=rnd.choice(self.entity_textures),
+               start_position=Vec2(rnd.randrange(-7, 7), 2.4 * window.aspect_ratio), delay=self.delay)
